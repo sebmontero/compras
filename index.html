@@ -79,7 +79,9 @@ tbody tr:last-child td { border-bottom: none; }
 .bought-section td { border-bottom-color: rgba(0,0,0,0.06) !important; }
 /* Wrapper comprado */
 .bought-wrapper { margin-bottom: 4px; }
-.bought-wrapper-title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 4px 6px; }
+.bought-wrapper-title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 4px 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.pending-wrapper-title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 4px 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.wrapper-arrow { font-size: 10px; color: #bbb; }
 .bought-wrapper.empty { display: none; }
 /* Agregar */
 .add-box { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 12px; margin-bottom: 10px; }
@@ -120,6 +122,8 @@ tbody tr:last-child td { border-bottom: none; }
 
 <!-- SUPERMERCADO -->
 <div id="super" class="section active">
+  <div class="pending-wrapper" id="super-pending-wrapper">
+    <div class="pending-wrapper-title" onclick="toggleAllIn('super-pending-wrapper','super-pending-arr')">Por comprar <span class="wrapper-arrow" id="super-pending-arr">▼</span></div>
   <div class="accordion" id="acc-super-proteinas">
     <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Proteínas</span><div class="acc-meta"><span class="acc-count" id="cnt-super-proteinas"></span><span class="acc-arrow">▼</span></div></div>
     <div class="acc-body open"><table><tbody id="super-proteinas">
@@ -214,10 +218,11 @@ tbody tr:last-child td { border-bottom: none; }
       <tr data-t="super" data-n="Pasta de dientes" data-cat="super-aseo"><td class="item-name">Pasta de dientes</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
     </tbody></table></div>
   </div>
+  </div>
 
   <!-- Comprado por categoría supermercado -->
   <div class="bought-wrapper empty" id="super-bought-wrapper">
-    <div class="bought-wrapper-title">Comprado</div>
+    <div class="bought-wrapper-title" onclick="toggleAllIn('super-bought-wrapper','super-bought-arr')">Comprado <span class="wrapper-arrow" id="super-bought-arr">▼</span></div>
     <div class="bought-section empty" id="bsec-super-proteinas">
       <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Proteínas</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
       <div class="acc-body open"><table><tbody id="bb-super-proteinas"></tbody></table></div>
@@ -263,6 +268,8 @@ tbody tr:last-child td { border-bottom: none; }
 
 <!-- VERDULERÍA -->
 <div id="verdu" class="section">
+  <div class="pending-wrapper" id="verdu-pending-wrapper">
+    <div class="pending-wrapper-title" onclick="toggleAllIn('verdu-pending-wrapper','verdu-pending-arr')">Por comprar <span class="wrapper-arrow" id="verdu-pending-arr">▼</span></div>
   <div class="accordion" id="acc-verdu-verduras">
     <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Verduras</span><div class="acc-meta"><span class="acc-count" id="cnt-verdu-verduras"></span><span class="acc-arrow">▼</span></div></div>
     <div class="acc-body open"><table><tbody id="verdu-verduras">
@@ -312,9 +319,10 @@ tbody tr:last-child td { border-bottom: none; }
       <tr data-t="verdu" data-n="Mani" data-cat="verdu-secos"><td class="item-name">Maní</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
     </tbody></table></div>
   </div>
+  </div>
 
   <div class="bought-wrapper empty" id="verdu-bought-wrapper">
-    <div class="bought-wrapper-title">Comprado</div>
+    <div class="bought-wrapper-title" onclick="toggleAllIn('verdu-bought-wrapper','verdu-bought-arr')">Comprado <span class="wrapper-arrow" id="verdu-bought-arr">▼</span></div>
     <div class="bought-section empty" id="bsec-verdu-verduras">
       <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Verduras</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
       <div class="acc-body open"><table><tbody id="bb-verdu-verduras"></tbody></table></div>
@@ -345,6 +353,8 @@ tbody tr:last-child td { border-bottom: none; }
 
 <!-- CARNICERÍA -->
 <div id="carni" class="section">
+  <div class="pending-wrapper" id="carni-pending-wrapper">
+    <div class="pending-wrapper-title" onclick="toggleAllIn('carni-pending-wrapper','carni-pending-arr')">Por comprar <span class="wrapper-arrow" id="carni-pending-arr">▼</span></div>
   <div class="accordion" id="acc-carni-carnes">
     <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Carnes</span><div class="acc-meta"><span class="acc-count" id="cnt-carni-carnes"></span><span class="acc-arrow">▼</span></div></div>
     <div class="acc-body open"><table><tbody id="carni-carnes">
@@ -353,9 +363,10 @@ tbody tr:last-child td { border-bottom: none; }
       <tr data-t="carni" data-n="Pollo carni" data-cat="carni-carnes"><td class="item-name">Pollo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
     </tbody></table></div>
   </div>
+  </div>
 
   <div class="bought-wrapper empty" id="carni-bought-wrapper">
-    <div class="bought-wrapper-title">Comprado</div>
+    <div class="bought-wrapper-title" onclick="toggleAllIn('carni-bought-wrapper','carni-bought-arr')">Comprado <span class="wrapper-arrow" id="carni-bought-arr">▼</span></div>
     <div class="bought-section empty" id="bsec-carni-carnes">
       <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Carnes</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
       <div class="acc-body open"><table><tbody id="bb-carni-carnes"></tbody></table></div>
@@ -393,6 +404,7 @@ const db = getDatabase(app);
 
 function setStatus(msg) { document.getElementById('sync-status').textContent = msg; }
 function safeKey(s) { return s.replace(/[.#$\[\]/\s]/g, '_'); }
+const NOTE_MAX_LEN = 60;
 
 function todayStr() {
   const d = new Date();
@@ -419,6 +431,20 @@ updateIdentityLabel();
 window.toggleAcc = function(header) {
   header.classList.toggle('open');
   header.nextElementSibling.classList.toggle('open');
+};
+
+window.toggleAllIn = function(wrapperId, arrowId) {
+  const wrapper = document.getElementById(wrapperId);
+  if (!wrapper) return;
+  const headers = wrapper.querySelectorAll('.acc-header');
+  const anyClosed = Array.from(headers).some(h => !h.classList.contains('open'));
+  headers.forEach(h => {
+    const body = h.nextElementSibling;
+    if (anyClosed) { h.classList.add('open'); body.classList.add('open'); }
+    else { h.classList.remove('open'); body.classList.remove('open'); }
+  });
+  const arrow = document.getElementById(arrowId);
+  if (arrow) arrow.textContent = anyClosed ? '▲' : '▼';
 };
 
 function makeRow(t, n, cat, label, dynamic) {
@@ -463,9 +489,13 @@ function ensureLastBoughtUI(row) {
     e.stopPropagation();
     const key = safeKey(row.dataset.n);
     const current = noteBtn.dataset.note || '';
-    const val = prompt('Nota para "' + label + '":', current);
+    const val = prompt('Nota para "' + label + '" (max. ' + NOTE_MAX_LEN + ' caracteres):', current);
     if (val === null) return;
-    const trimmed = val.trim();
+    let trimmed = val.trim();
+    if (trimmed.length > NOTE_MAX_LEN) {
+      trimmed = trimmed.slice(0, NOTE_MAX_LEN);
+      alert('La nota se acorto a ' + NOTE_MAX_LEN + ' caracteres para que no se corte en pantalla.');
+    }
     setStatus('Guardando...');
     const p = trimmed ? set(ref(db, 'lista/notes/' + key), trimmed) : remove(ref(db, 'lista/notes/' + key));
     p.then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });

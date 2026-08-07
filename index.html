@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compras — Seffi</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%92%3C/text%3E%3C/svg%3E">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; background: #ddeef7; color: #1a1a1a; padding: 16px; transition: background 0.3s; }
+body.bg-verdu { background: #d6edda; }
+body.bg-carni { background: #f7ddd8; }
+h1 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #1a1a1a; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sync-status { font-size: 11px; color: #888; min-height: 16px; }
+.identity-label { font-size: 11px; color: #888; text-decoration: underline; cursor: pointer; white-space: nowrap; }
+.identity-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.identity-overlay.show { display: flex; }
+.identity-card { background: #fff; border-radius: 14px; padding: 20px; max-width: 300px; width: 100%; text-align: center; }
+.identity-card h2 { font-size: 15px; margin-bottom: 14px; }
+.identity-btn { display: block; width: 100%; padding: 12px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #ccc; background: #f7f7f5; font-size: 14px; font-weight: 600; cursor: pointer; }
+.identity-btn:last-child { margin-bottom: 0; }
+.identity-btn:active { background: #eee; }
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.tab { flex: 1; padding: 9px 4px; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; background: #fff; color: #666; text-align: center; }
+.tab-super.active { background: #2a7ab8; color: #fff; border-color: #2a7ab8; }
+.tab-verdu.active { background: #3a8a4a; color: #fff; border-color: #3a8a4a; }
+.tab-carni.active { background: #c0392b; color: #fff; border-color: #c0392b; }
+.section { display: none; }
+.section.active { display: block; }
+
+.accordion { margin-bottom: 10px; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.acc-header { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; background: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
+.acc-header:active { background: #f5f5f0; }
+.acc-label { font-size: 11px; font-weight: 600; color: #777; text-transform: uppercase; letter-spacing: 0.05em; }
+.acc-meta { display: flex; align-items: center; gap: 8px; }
+.acc-count { font-size: 11px; color: #bbb; }
+.acc-arrow { font-size: 11px; color: #bbb; transition: transform 0.2s; display: inline-block; }
+.acc-header.open .acc-arrow { transform: rotate(180deg); }
+.acc-body { display: none; }
+.acc-body.open { display: block; }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+tbody td { padding: 7px 8px; font-size: 13px; border-bottom: 0.5px solid #eeebe4; color: #333; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+.item-name { color: #1a1a1a; font-size: 13px; }
+.item-label { display: block; font-size: 13px; color: #1a1a1a; }
+.note-star { color: #c0392b; font-weight: 700; }
+.lb-row { display: flex; align-items: center; gap: 4px; margin-top: 2px; overflow: hidden; }
+.lb-date-wrap { position: relative; display: inline-block; flex-shrink: 0; }
+.lb-text { font-size: 10px; color: #aaa; cursor: pointer; white-space: nowrap; }
+.lb-input { position: absolute; inset: 0; opacity: 0; border: none; padding: 0; margin: 0; cursor: pointer; }
+.bought-section .lb-text { color: rgba(0,0,0,0.35); }
+.note-sep { font-size: 10px; color: #ccc; flex-shrink: 0; }
+.note-text { font-size: 10px; color: #888; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.note-btn { background: none; border: none; font-size: 11px; padding: 0; cursor: pointer; opacity: 0.5; line-height: 1; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+.note-btn:active { opacity: 1; }
+.bought-section .note-text { color: rgba(0,0,0,0.3); }
+.check-cell { width: 34px; text-align: center; }
+.del-cell { width: 30px; text-align: center; }
+.check-btn { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #ccc; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+#super .check-btn.checked { background: #2a7ab8; border-color: #2a7ab8; color: #fff; }
+#verdu .check-btn.checked { background: #3a8a4a; border-color: #3a8a4a; color: #fff; }
+#carni .check-btn.checked { background: #c0392b; border-color: #c0392b; color: #fff; }
+.del-btn { width: 22px; height: 22px; border-radius: 50%; border: none; background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; color: #ccc; transition: color 0.15s; -webkit-tap-highlight-color: transparent; line-height: 1; }
+.del-btn:hover { color: #e05050; }
+/* Sección comprado por categoría */
+.bought-section { margin-bottom: 10px; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.bought-section.empty { display: none; }
+#super .bought-section .acc-header { background: #eaf3fb; }
+#verdu .bought-section .acc-header { background: #e4f2e6; }
+#carni .bought-section .acc-header { background: #faeae8; }
+#super .bought-section .acc-label { color: #2a7ab8; }
+#verdu .bought-section .acc-label { color: #3a8a4a; }
+#carni .bought-section .acc-label { color: #c0392b; }
+#super .bought-section table { background: #eaf3fb; }
+#verdu .bought-section table { background: #e4f2e6; }
+#carni .bought-section table { background: #faeae8; }
+.bought-section .item-name { text-decoration: line-through; opacity: 0.5; }
+.bought-section td { border-bottom-color: rgba(0,0,0,0.06) !important; }
+/* Wrapper comprado */
+.bought-wrapper { margin-bottom: 4px; }
+.bought-wrapper-title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 4px 6px; }
+.bought-wrapper.empty { display: none; }
+/* Agregar */
+.add-box { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 12px; margin-bottom: 10px; }
+.add-box label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 5px; }
+.add-input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; background: #fff; outline: none; margin-bottom: 8px; }
+.add-select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; background: #fff; outline: none; color: #555; margin-bottom: 8px; }
+.add-btn { width: 100%; padding: 9px; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: #fff; }
+#super .add-btn { background: #2a7ab8; }
+#verdu .add-btn { background: #3a8a4a; }
+#carni .add-btn { background: #c0392b; }
+.add-btn:active { opacity: 0.85; }
+.reset-btn { width: 100%; margin-top: 2px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: #fff; font-size: 13px; color: #999; cursor: pointer; margin-bottom: 8px; }
+.reset-btn:active { background: #f0ede6; }
+.markall-btn { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: #fff; font-size: 13px; color: #999; cursor: pointer; margin-bottom: 16px; }
+.markall-btn:active { background: #f0ede6; }
+</style>
+</head>
+<body>
+<h1>Compras — Seffi</h1>
+<div class="top-bar">
+  <div class="sync-status" id="sync-status">Conectando...</div>
+  <span class="identity-label" id="identity-label" onclick="document.getElementById('identity-modal').classList.add('show')">👤 elegir</span>
+</div>
+
+<div class="identity-overlay" id="identity-modal">
+  <div class="identity-card">
+    <h2>¿Quién eres?</h2>
+    <button class="identity-btn" onclick="window.setIdentity('Seba')">Seba</button>
+    <button class="identity-btn" onclick="window.setIdentity('Soffia')">Soffia</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab tab-super active" onclick="show('super')">Supermercado</div>
+  <div class="tab tab-verdu" onclick="show('verdu')">Verdulería</div>
+  <div class="tab tab-carni" onclick="show('carni')">Carnicería</div>
+</div>
+
+<!-- SUPERMERCADO -->
+<div id="super" class="section active">
+  <div class="accordion" id="acc-super-proteinas">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Proteínas</span><div class="acc-meta"><span class="acc-count" id="cnt-super-proteinas"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-proteinas">
+      <tr data-t="super" data-n="Pollo" data-cat="super-proteinas"><td class="item-name">Pollo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Huevos" data-cat="super-proteinas"><td class="item-name">Huevos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Carne molida" data-cat="super-proteinas"><td class="item-name">Carne molida</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Pavo" data-cat="super-proteinas"><td class="item-name">Pavo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Atun al agua" data-cat="super-proteinas"><td class="item-name">Atún al agua</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Jamon de pavo" data-cat="super-proteinas"><td class="item-name">Jamón de pavo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Pescado" data-cat="super-proteinas"><td class="item-name">Pescado</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Porotos negros" data-cat="super-proteinas"><td class="item-name">Porotos negros</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Garbanzos" data-cat="super-proteinas"><td class="item-name">Garbanzos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Arvejas congeladas" data-cat="super-proteinas"><td class="item-name">Arvejas congeladas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Tofu" data-cat="super-proteinas"><td class="item-name">Tofu</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-super-cereales">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Cereales</span><div class="acc-meta"><span class="acc-count" id="cnt-super-cereales"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-cereales">
+      <tr data-t="super" data-n="Pan Pita" data-cat="super-cereales"><td class="item-name">Pan Pita (Ideal Cero Cero)</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Pan de Molde" data-cat="super-cereales"><td class="item-name">Pan de Molde (Ideal Cero Cero)</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Tortillas" data-cat="super-cereales"><td class="item-name">Tortillas (Rapiditas)</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Harina" data-cat="super-cereales"><td class="item-name">Harina</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Arroz" data-cat="super-cereales"><td class="item-name">Arroz</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Fideos" data-cat="super-cereales"><td class="item-name">Fideos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Legumbres" data-cat="super-cereales"><td class="item-name">Legumbres</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Quinoa" data-cat="super-cereales"><td class="item-name">Quinoa</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Cous Cous" data-cat="super-cereales"><td class="item-name">Cous Cous</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Avena" data-cat="super-cereales"><td class="item-name">Avena</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Choclo congelado" data-cat="super-cereales"><td class="item-name">Choclo congelado</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Papas duquesas" data-cat="super-cereales"><td class="item-name">Papas duquesas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Galletas de arroz" data-cat="super-cereales"><td class="item-name">Galletas de arroz</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Galletas de soda" data-cat="super-cereales"><td class="item-name">Galletas de soda (Salma / Creckelet)</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Cereal Chocapic" data-cat="super-cereales"><td class="item-name">Cereal (Chocapic Stevia)</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Cabritas" data-cat="super-cereales"><td class="item-name">Cabritas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-super-lacteos">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Lácteos</span><div class="acc-meta"><span class="acc-count" id="cnt-super-lacteos"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-lacteos">
+      <tr data-t="super" data-n="Leche sin lactosa" data-cat="super-lacteos"><td class="item-name">Leche semidescremada sin lactosa</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Yogurt protein" data-cat="super-lacteos"><td class="item-name">Yogurt protein</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Quesillo" data-cat="super-lacteos"><td class="item-name">Quesillo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Queso fresco" data-cat="super-lacteos"><td class="item-name">Queso fresco</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Queso mantecoso" data-cat="super-lacteos"><td class="item-name">Queso mantecoso</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-super-aceites">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Aceites y grasas</span><div class="acc-meta"><span class="acc-count" id="cnt-super-aceites"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-aceites">
+      <tr data-t="super" data-n="Aceitunas" data-cat="super-aceites"><td class="item-name">Aceitunas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Aceite de coco" data-cat="super-aceites"><td class="item-name">Aceite de coco</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Aceite de oliva" data-cat="super-aceites"><td class="item-name">Aceite de oliva</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Chocolate amargo" data-cat="super-aceites"><td class="item-name">Chocolate amargo (70%+)</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Mayonesa Kraft" data-cat="super-aceites"><td class="item-name">Mayonesa Kraft</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Mantequilla de mani" data-cat="super-aceites"><td class="item-name">Mantequilla de maní</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-super-frutas">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Frutas y verduras</span><div class="acc-meta"><span class="acc-count" id="cnt-super-frutas"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-frutas">
+      <tr data-t="super" data-n="Champinones super" data-cat="super-frutas"><td class="item-name">Champiñones</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Palta super" data-cat="super-frutas"><td class="item-name">Palta</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Limon" data-cat="super-frutas"><td class="item-name">Limón</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Palmitos" data-cat="super-frutas"><td class="item-name">Palmitos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Esparragos super" data-cat="super-frutas"><td class="item-name">Espárragos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Manzana verde super" data-cat="super-frutas"><td class="item-name">Manzana verde</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Platanos super" data-cat="super-frutas"><td class="item-name">Plátanos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-super-aseo">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Aseo</span><div class="acc-meta"><span class="acc-count" id="cnt-super-aseo"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-aseo">
+      <tr data-t="super" data-n="Confort" data-cat="super-aseo"><td class="item-name">Confort</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Nova" data-cat="super-aseo"><td class="item-name">Nova</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Servilletas" data-cat="super-aseo"><td class="item-name">Servilletas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Toallas desinfectantes" data-cat="super-aseo"><td class="item-name">Toallas desinfectantes</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Toallitas humedas" data-cat="super-aseo"><td class="item-name">Toallitas húmedas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Traperos humedos" data-cat="super-aseo"><td class="item-name">Traperos húmedos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Poett" data-cat="super-aseo"><td class="item-name">Poett</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Bolsas de basura" data-cat="super-aseo"><td class="item-name">Bolsas de basura</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Cloro gel" data-cat="super-aseo"><td class="item-name">Cloro gel</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Detergente" data-cat="super-aseo"><td class="item-name">Detergente</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Pastillas lavavajillas" data-cat="super-aseo"><td class="item-name">Pastillas lavavajillas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Jabon Dove" data-cat="super-aseo"><td class="item-name">Jabón Dove</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Shampoo" data-cat="super-aseo"><td class="item-name">Shampoo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="super" data-n="Pasta de dientes" data-cat="super-aseo"><td class="item-name">Pasta de dientes</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <!-- Comprado por categoría supermercado -->
+  <div class="bought-wrapper empty" id="super-bought-wrapper">
+    <div class="bought-wrapper-title">Comprado</div>
+    <div class="bought-section empty" id="bsec-super-proteinas">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Proteínas</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-proteinas"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-super-cereales">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Cereales</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-cereales"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-super-lacteos">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Lácteos</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-lacteos"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-super-aceites">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Aceites y grasas</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-aceites"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-super-frutas">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Frutas y verduras</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-frutas"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-super-aseo">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Aseo</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-aseo"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="add-box">
+    <label>Agregar producto</label>
+    <input class="add-input" id="super-add-input" type="text" placeholder="Nombre del producto..." onkeydown="if(event.key==='Enter')addItem('super')">
+    <select class="add-select" id="super-add-cat">
+      <option value="super-proteinas">Proteínas</option>
+      <option value="super-cereales">Cereales</option>
+      <option value="super-lacteos">Lácteos</option>
+      <option value="super-aceites">Aceites y grasas</option>
+      <option value="super-frutas">Frutas y verduras</option>
+      <option value="super-aseo">Aseo</option>
+    </select>
+    <button class="add-btn" onclick="addItem('super')">+ Agregar</button>
+  </div>
+  <button class="reset-btn" onclick="resetTab('super')">Reiniciar lista</button>
+  <button class="markall-btn" onclick="markAllTab('super')">Marcar todo como comprado</button>
+</div>
+
+<!-- VERDULERÍA -->
+<div id="verdu" class="section">
+  <div class="accordion" id="acc-verdu-verduras">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Verduras</span><div class="acc-meta"><span class="acc-count" id="cnt-verdu-verduras"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="verdu-verduras">
+      <tr data-t="verdu" data-n="Palta verdu" data-cat="verdu-verduras"><td class="item-name">Palta</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Lechuga" data-cat="verdu-verduras"><td class="item-name">Lechuga</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Apio" data-cat="verdu-verduras"><td class="item-name">Apio</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Repollo" data-cat="verdu-verduras"><td class="item-name">Repollo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Espinaca" data-cat="verdu-verduras"><td class="item-name">Espinaca</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Pepino" data-cat="verdu-verduras"><td class="item-name">Pepino</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Tomates" data-cat="verdu-verduras"><td class="item-name">Tomates</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Cebollas" data-cat="verdu-verduras"><td class="item-name">Cebollas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Champinones verdu" data-cat="verdu-verduras"><td class="item-name">Champiñones</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Brocoli" data-cat="verdu-verduras"><td class="item-name">Brócoli</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Coliflor" data-cat="verdu-verduras"><td class="item-name">Coliflor</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Esparragos verdu" data-cat="verdu-verduras"><td class="item-name">Espárragos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Zapallo italiano" data-cat="verdu-verduras"><td class="item-name">Zapallo italiano</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Pimenton" data-cat="verdu-verduras"><td class="item-name">Pimentón</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Zanahoria" data-cat="verdu-verduras"><td class="item-name">Zanahoria</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Zapallo" data-cat="verdu-verduras"><td class="item-name">Zapallo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Betarraga" data-cat="verdu-verduras"><td class="item-name">Betarraga</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Papas" data-cat="verdu-verduras"><td class="item-name">Papas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Camote" data-cat="verdu-verduras"><td class="item-name">Camote</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-verdu-frutas">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Frutas</span><div class="acc-meta"><span class="acc-count" id="cnt-verdu-frutas"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="verdu-frutas">
+      <tr data-t="verdu" data-n="Platanos verdu" data-cat="verdu-frutas"><td class="item-name">Plátanos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Manzana verde verdu" data-cat="verdu-frutas"><td class="item-name">Manzana verde</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Pera" data-cat="verdu-frutas"><td class="item-name">Pera</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Frutillas" data-cat="verdu-frutas"><td class="item-name">Frutillas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Arandanos" data-cat="verdu-frutas"><td class="item-name">Arándanos</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Mango" data-cat="verdu-frutas"><td class="item-name">Mango</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Kiwi" data-cat="verdu-frutas"><td class="item-name">Kiwi</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="accordion" id="acc-verdu-secos">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Frutos secos</span><div class="acc-meta"><span class="acc-count" id="cnt-verdu-secos"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="verdu-secos">
+      <tr data-t="verdu" data-n="Almendras" data-cat="verdu-secos"><td class="item-name">Almendras</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Nueces" data-cat="verdu-secos"><td class="item-name">Nueces</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Castanas de caju" data-cat="verdu-secos"><td class="item-name">Castañas de cajú</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Avellanas" data-cat="verdu-secos"><td class="item-name">Avellanas</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Semillas de zapallo" data-cat="verdu-secos"><td class="item-name">Semillas de zapallo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="verdu" data-n="Mani" data-cat="verdu-secos"><td class="item-name">Maní</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="bought-wrapper empty" id="verdu-bought-wrapper">
+    <div class="bought-wrapper-title">Comprado</div>
+    <div class="bought-section empty" id="bsec-verdu-verduras">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Verduras</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-verdu-verduras"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-verdu-frutas">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Frutas</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-verdu-frutas"></tbody></table></div>
+    </div>
+    <div class="bought-section empty" id="bsec-verdu-secos">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Frutos secos</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-verdu-secos"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="add-box">
+    <label>Agregar producto</label>
+    <input class="add-input" id="verdu-add-input" type="text" placeholder="Nombre del producto..." onkeydown="if(event.key==='Enter')addItem('verdu')">
+    <select class="add-select" id="verdu-add-cat">
+      <option value="verdu-verduras">Verduras</option>
+      <option value="verdu-frutas">Frutas</option>
+      <option value="verdu-secos">Frutos secos</option>
+    </select>
+    <button class="add-btn" onclick="addItem('verdu')">+ Agregar</button>
+  </div>
+  <button class="reset-btn" onclick="resetTab('verdu')">Reiniciar lista</button>
+  <button class="markall-btn" onclick="markAllTab('verdu')">Marcar todo como comprado</button>
+</div>
+
+<!-- CARNICERÍA -->
+<div id="carni" class="section">
+  <div class="accordion" id="acc-carni-carnes">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Carnes</span><div class="acc-meta"><span class="acc-count" id="cnt-carni-carnes"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="carni-carnes">
+      <tr data-t="carni" data-n="Carne de vacuno" data-cat="carni-carnes"><td class="item-name">Carne de vacuno</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="carni" data-n="Cerdo" data-cat="carni-carnes"><td class="item-name">Cerdo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+      <tr data-t="carni" data-n="Pollo carni" data-cat="carni-carnes"><td class="item-name">Pollo</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="bought-wrapper empty" id="carni-bought-wrapper">
+    <div class="bought-wrapper-title">Comprado</div>
+    <div class="bought-section empty" id="bsec-carni-carnes">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Carnes</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-carni-carnes"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="add-box">
+    <label>Agregar producto</label>
+    <input class="add-input" id="carni-add-input" type="text" placeholder="Nombre del producto..." onkeydown="if(event.key==='Enter')addItem('carni')">
+    <select class="add-select" id="carni-add-cat">
+      <option value="carni-carnes">Carnes</option>
+    </select>
+    <button class="add-btn" onclick="addItem('carni')">+ Agregar</button>
+  </div>
+  <button class="reset-btn" onclick="resetTab('carni')">Reiniciar lista</button>
+  <button class="markall-btn" onclick="markAllTab('carni')">Marcar todo como comprado</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAuBRQhwKIyPVxe7-2iPr_BTidV67pCAjM",
+  authDomain: "compras-seffi.firebaseapp.com",
+  databaseURL: "https://compras-seffi-default-rtdb.firebaseio.com",
+  projectId: "compras-seffi",
+  storageBucket: "compras-seffi.firebasestorage.app",
+  messagingSenderId: "263414604777",
+  appId: "1:263414604777:web:ff2860f70b810efb5d6178"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function setStatus(msg) { document.getElementById('sync-status').textContent = msg; }
+function safeKey(s) { return s.replace(/[.#$\[\]/\s]/g, '_'); }
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function formatDate(iso) {
+  const p = iso.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0].slice(2);
+}
+
+function getIdentity() { return localStorage.getItem('compras_who') || null; }
+function updateIdentityLabel() {
+  const who = getIdentity();
+  document.getElementById('identity-label').textContent = who ? '👤 ' + who : '👤 elegir';
+}
+window.setIdentity = function(name) {
+  localStorage.setItem('compras_who', name);
+  document.getElementById('identity-modal').classList.remove('show');
+  updateIdentityLabel();
+};
+if (!getIdentity()) document.getElementById('identity-modal').classList.add('show');
+updateIdentityLabel();
+
+window.toggleAcc = function(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+};
+
+function makeRow(t, n, cat, label, dynamic) {
+  const tr = document.createElement('tr');
+  tr.dataset.t = t; tr.dataset.n = n; tr.dataset.cat = cat;
+  if (dynamic) tr.dataset.dynamic = '1';
+  tr.innerHTML = '<td class="item-name">' + label + '</td>' +
+    '<td class="check-cell"><button class="check-btn" onclick="window.toggle(this)"></button></td>' +
+    '<td class="del-cell"><button class="del-btn" onclick="window.deleteItem(this)">×</button></td>';
+  return tr;
+}
+
+function makeBoughtRow(t, n, cat, label) {
+  const tr = document.createElement('tr');
+  tr.className = 'bought-row'; tr.dataset.t = t; tr.dataset.n = n; tr.dataset.cat = cat;
+  tr.innerHTML = '<td class="item-name">' + label + '</td>' +
+    '<td class="check-cell"><button class="check-btn checked" onclick="window.uncheck(this)">✓</button></td>' +
+    '<td class="del-cell"><button class="del-btn" onclick="window.deleteItem(this)">×</button></td>';
+  return tr;
+}
+
+function ensureLastBoughtUI(row) {
+  const cell = row.querySelector('.item-name');
+  if (!cell || cell.dataset.enhanced) return;
+  cell.dataset.enhanced = '1';
+  const label = cell.textContent;
+  cell.innerHTML =
+    '<span class="item-label">' + label + '<span class="note-star"></span></span>' +
+    '<div class="lb-row"><span class="lb-date-wrap"><span class="lb-text">Sin registro</span><input type="date" class="lb-input"></span><span class="note-sep">·</span><span class="note-text"></span><button type="button" class="note-btn">📝</button></div>';
+
+  const dateInput = cell.querySelector('.lb-input');
+  dateInput.addEventListener('click', e => e.stopPropagation());
+  dateInput.addEventListener('change', () => {
+    if (!dateInput.value) return;
+    const payload = { who: getIdentity() || 'Sin identificar', date: dateInput.value, manual: true };
+    setStatus('Guardando...');
+    set(ref(db, 'lista/lastBought/' + safeKey(row.dataset.n)), payload).then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });
+  });
+
+  const noteBtn = cell.querySelector('.note-btn');
+  noteBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const key = safeKey(row.dataset.n);
+    const current = noteBtn.dataset.note || '';
+    const val = prompt('Nota para "' + label + '":', current);
+    if (val === null) return;
+    const trimmed = val.trim();
+    setStatus('Guardando...');
+    const p = trimmed ? set(ref(db, 'lista/notes/' + key), trimmed) : remove(ref(db, 'lista/notes/' + key));
+    p.then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });
+  });
+}
+
+function refreshLastBought(lastBought) {
+  document.querySelectorAll('[data-t][data-n]').forEach(row => {
+    ensureLastBoughtUI(row);
+    const cell = row.querySelector('.item-name');
+    const textEl = cell.querySelector('.lb-text');
+    const inputEl = cell.querySelector('.lb-input');
+    const info = lastBought[safeKey(row.dataset.n)];
+    if (info && info.date) {
+      textEl.textContent = (info.who ? info.who + ' · ' : '') + formatDate(info.date);
+      inputEl.value = info.date;
+    } else {
+      textEl.textContent = 'Sin registro';
+      inputEl.value = '';
+    }
+  });
+}
+
+function refreshNotes(notes) {
+  document.querySelectorAll('[data-t][data-n]').forEach(row => {
+    const cell = row.querySelector('.item-name');
+    if (!cell.dataset.enhanced) return;
+    const key = safeKey(row.dataset.n);
+    const note = notes[key] || '';
+    const star = cell.querySelector('.note-star');
+    const sep = cell.querySelector('.note-sep');
+    const noteText = cell.querySelector('.note-text');
+    const noteBtn = cell.querySelector('.note-btn');
+    star.textContent = note ? ' *' : '';
+    sep.style.display = note ? '' : 'none';
+    noteText.textContent = note;
+    noteBtn.dataset.note = note;
+  });
+}
+
+function updateCatCount(catId) {
+  const el = document.getElementById('cnt-' + catId);
+  if (!el) return;
+  const total = document.querySelectorAll('#' + catId + ' tr').length;
+  const bought = document.querySelectorAll('#bb-' + catId + ' tr').length;
+  el.textContent = bought > 0 ? '(' + bought + '/' + total + ')' : '';
+}
+
+function updateBoughtWrapper(t) {
+  const wrapper = document.getElementById(t + '-bought-wrapper');
+  const hasBought = document.querySelectorAll('[id^="bb-' + t + '"] tr').length > 0;
+  wrapper.classList.toggle('empty', !hasBought);
+}
+
+function applyState(data) {
+  // Reset all
+  ['super','verdu','carni'].forEach(t => {
+    document.querySelectorAll('[data-t="' + t + '"]:not(.bought-row)').forEach(r => r.style.display = '');
+  });
+  document.querySelectorAll('[id^="bb-"]').forEach(tb => tb.innerHTML = '');
+  document.querySelectorAll('.bought-section').forEach(s => s.classList.add('empty'));
+  document.querySelectorAll('.bought-wrapper').forEach(w => w.classList.add('empty'));
+  document.querySelectorAll('[data-dynamic="1"]').forEach(r => r.remove());
+
+  const deleted = data && data.deleted ? data.deleted : {};
+  const bought = data && data.bought ? data.bought : {};
+  const extra = data && data.extra ? data.extra : {};
+
+  // Build lookup: safeKey(data-n) → row, for matching Firebase keys to DOM rows
+  function findRowByKey(key) {
+    const allRows = document.querySelectorAll('[data-t][data-n]:not(.bought-row)');
+    for (const r of allRows) {
+      if (safeKey(r.dataset.n) === key) return r;
+    }
+    return null;
+  }
+
+  // Remove deleted base items from DOM entirely
+  Object.keys(deleted).forEach(key => {
+    if (!deleted[key]) return;
+    const row = findRowByKey(key);
+    if (row) row.remove();
+  });
+
+  // Add extra items (skip deleted)
+  Object.keys(extra).forEach(key => {
+    const item = extra[key];
+    if (!item || deleted[key]) return;
+    const tbody = document.getElementById(item.cat);
+    if (!tbody || document.querySelector('[data-n="' + item.n + '"]')) return;
+    tbody.appendChild(makeRow(item.t, item.n, item.cat, item.label, true));
+  });
+
+  // Apply bought (skip deleted)
+  Object.keys(bought).forEach(key => {
+    if (!bought[key]) return;
+    if (deleted[key]) return;
+    const row = findRowByKey(key);
+    if (!row) return;
+    const t = row.dataset.t;
+    const cat = row.dataset.cat;
+    const nameCell = row.querySelector('.item-name');
+    const label = nameCell.querySelector('.item-label') ? nameCell.querySelector('.item-label').textContent : nameCell.textContent;
+    row.style.display = 'none';
+    const bb = document.getElementById('bb-' + cat);
+    if (bb) {
+      bb.appendChild(makeBoughtRow(t, row.dataset.n, cat, label));
+      document.getElementById('bsec-' + cat).classList.remove('empty');
+    }
+  });
+
+  ['super','verdu','carni'].forEach(t => {
+    updateBoughtWrapper(t);
+  });
+  document.querySelectorAll('[id^="cnt-"]').forEach(el => {
+    const catId = el.id.replace('cnt-', '');
+    updateCatCount(catId);
+  });
+
+  const lastBought = data && data.lastBought ? data.lastBought : {};
+  refreshLastBought(lastBought);
+
+  const notes = data && data.notes ? data.notes : {};
+  refreshNotes(notes);
+}
+
+window.toggle = function(btn) {
+  const row = btn.closest('tr');
+  const n = row.dataset.n; const t = row.dataset.t; const cat = row.dataset.cat;
+  const label = row.querySelector('.item-label') ? row.querySelector('.item-label').textContent : row.querySelector('.item-name').textContent;
+  row.style.display = 'none';
+  const bb = document.getElementById('bb-' + cat);
+  if (bb) {
+    bb.appendChild(makeBoughtRow(t, n, cat, label));
+    document.getElementById('bsec-' + cat).classList.remove('empty');
+  }
+  updateBoughtWrapper(t); updateCatCount(cat);
+  setStatus('Guardando...');
+  const key = safeKey(n);
+  const payload = { who: getIdentity() || 'Sin identificar', date: todayStr() };
+  update(ref(db), {
+    ['lista/bought/' + key]: payload,
+    ['lista/lastBought/' + key]: payload
+  }).then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });
+};
+
+window.uncheck = function(btn) {
+  const row = btn.closest('tr');
+  const n = row.dataset.n; const t = row.dataset.t; const cat = row.dataset.cat;
+  const orig = document.querySelector('[data-n="' + n + '"]:not(.bought-row)');
+  if (orig) orig.style.display = '';
+  row.remove();
+  const bb = document.getElementById('bb-' + cat);
+  if (bb && !bb.children.length) document.getElementById('bsec-' + cat).classList.add('empty');
+  updateBoughtWrapper(t); updateCatCount(cat);
+  setStatus('Guardando...');
+  remove(ref(db, 'lista/bought/' + safeKey(n))).then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });
+};
+
+window.deleteItem = function(btn) {
+  const row = btn.closest('tr');
+  const n = row.dataset.n; const t = row.dataset.t; const cat = row.dataset.cat;
+  const isBought = row.classList.contains('bought-row');
+  const key = safeKey(n);
+
+  // Remove from DOM completely
+  row.remove();
+
+  if (isBought) {
+    const bb = document.getElementById('bb-' + cat);
+    if (bb && !bb.children.length) document.getElementById('bsec-' + cat).classList.add('empty');
+    remove(ref(db, 'lista/bought/' + key));
+  }
+
+  // Dynamic items: remove from extra. Base items: mark as deleted.
+  if (row.dataset.dynamic === '1') {
+    remove(ref(db, 'lista/extra/' + key));
+    remove(ref(db, 'lista/bought/' + key));
+  } else {
+    set(ref(db, 'lista/deleted/' + key), true);
+    remove(ref(db, 'lista/bought/' + key));
+  }
+  remove(ref(db, 'lista/lastBought/' + key));
+  remove(ref(db, 'lista/notes/' + key));
+
+  updateBoughtWrapper(t); updateCatCount(cat);
+  setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500);
+};
+
+window.addItem = function(t) {
+  const input = document.getElementById(t + '-add-input');
+  const catSel = document.getElementById(t + '-add-cat');
+  const label = input.value.trim();
+  if (!label) return;
+  const catId = catSel.value;
+  const n = safeKey(t + '_custom_' + label.toLowerCase().replace(/\s+/g,'_'));
+  if (document.querySelector('[data-n="' + n + '"]')) { input.value = ''; return; }
+  const tbody = document.getElementById(catId);
+  if (!tbody) return;
+  tbody.appendChild(makeRow(t, n, catId, label, true));
+  input.value = '';
+  updateCatCount(catId);
+  setStatus('Guardando...');
+  set(ref(db, 'lista/extra/' + n), { n, label, t, cat: catId }).then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });
+};
+
+window.markAllTab = function(t) {
+  const rows = Array.from(document.querySelectorAll('[data-t="' + t + '"]:not(.bought-row)')).filter(r => r.style.display !== 'none');
+  if (!rows.length) { setStatus('No hay nada pendiente'); setTimeout(() => setStatus(''), 1500); return; }
+  const who = getIdentity() || 'Sin identificar';
+  const date = todayStr();
+  const updates = {};
+  rows.forEach(row => {
+    const n = row.dataset.n; const cat = row.dataset.cat;
+    const label = row.querySelector('.item-label') ? row.querySelector('.item-label').textContent : row.querySelector('.item-name').textContent;
+    row.style.display = 'none';
+    const bb = document.getElementById('bb-' + cat);
+    if (bb) {
+      bb.appendChild(makeBoughtRow(t, n, cat, label));
+      document.getElementById('bsec-' + cat).classList.remove('empty');
+    }
+    const key = safeKey(n);
+    const payload = { who, date };
+    updates['lista/bought/' + key] = payload;
+    updates['lista/lastBought/' + key] = payload;
+  });
+  updateBoughtWrapper(t);
+  document.querySelectorAll('[id^="cnt-' + t + '"]').forEach(el => updateCatCount(el.id.replace('cnt-', '')));
+  setStatus('Guardando...');
+  update(ref(db), updates).then(() => { setStatus('Sincronizado'); setTimeout(() => setStatus(''), 1500); });
+};
+
+window.resetTab = function(t) {
+  // Restore all bought items to list
+  document.querySelectorAll('[id^="bb-' + t + '"] tr').forEach(row => {
+    const n = row.dataset.n; const cat = row.dataset.cat;
+    const orig = document.querySelector('[data-n="' + n + '"]:not(.bought-row)');
+    if (orig) orig.style.display = '';
+    document.getElementById('bsec-' + cat).classList.add('empty');
+    remove(ref(db, 'lista/bought/' + safeKey(n)));
+  });
+  document.querySelectorAll('[id^="bb-' + t + '"]').forEach(tb => tb.innerHTML = '');
+  updateBoughtWrapper(t);
+  document.querySelectorAll('[id^="cnt-' + t + '"]').forEach(el => updateCatCount(el.id.replace('cnt-','')));
+  setStatus('Lista reiniciada'); setTimeout(() => setStatus(''), 1500);
+};
+
+window.show = function(t) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
+  document.querySelector('.tab-' + t).classList.add('active');
+  document.body.className = { super: '', verdu: 'bg-verdu', carni: 'bg-carni' }[t] || '';
+};
+
+onValue(ref(db, 'lista'), (snapshot) => {
+  setStatus('Conectado');
+  applyState(snapshot.val());
+  setTimeout(() => setStatus(''), 1500);
+});
+</script>
+</body>
+</html>

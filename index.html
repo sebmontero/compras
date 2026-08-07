@@ -218,6 +218,13 @@ tbody tr:last-child td { border-bottom: none; }
       <tr data-t="super" data-n="Pasta de dientes" data-cat="super-aseo"><td class="item-name">Pasta de dientes</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
     </tbody></table></div>
   </div>
+
+  <div class="accordion" id="acc-super-otros">
+    <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Otros</span><div class="acc-meta"><span class="acc-count" id="cnt-super-otros"></span><span class="acc-arrow">▼</span></div></div>
+    <div class="acc-body open"><table><tbody id="super-otros">
+      <tr data-t="super" data-n="Galletas kuky" data-cat="super-otros"><td class="item-name">Galletas kuky</td><td class="check-cell"><button class="check-btn" onclick="toggle(this)"></button></td><td class="del-cell"><button class="del-btn" onclick="deleteItem(this)">×</button></td></tr>
+    </tbody></table></div>
+  </div>
   </div>
 
   <!-- Comprado por categoría supermercado -->
@@ -247,6 +254,10 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Aseo</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
       <div class="acc-body open"><table><tbody id="bb-super-aseo"></tbody></table></div>
     </div>
+    <div class="bought-section empty" id="bsec-super-otros">
+      <div class="acc-header open" onclick="toggleAcc(this)"><span class="acc-label">Otros</span><div class="acc-meta"><span class="acc-arrow">▼</span></div></div>
+      <div class="acc-body open"><table><tbody id="bb-super-otros"></tbody></table></div>
+    </div>
   </div>
 
   <div class="add-box">
@@ -259,6 +270,7 @@ tbody tr:last-child td { border-bottom: none; }
       <option value="super-aceites">Aceites y grasas</option>
       <option value="super-frutas">Frutas y verduras</option>
       <option value="super-aseo">Aseo</option>
+      <option value="super-otros">Otros</option>
     </select>
     <button class="add-btn" onclick="addItem('super')">+ Agregar</button>
   </div>

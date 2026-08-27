@@ -11,6 +11,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; f
 body.bg-verdu { background: #d6edda; }
 body.bg-carni { background: #f7ddd8; }
 h1 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #1a1a1a; }
+.hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; border-radius: 10px; padding: 8px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.hdr h1 { margin-bottom: 0; }
+.add-tab-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: #f0ede6; color: #555; font-size: 16px; font-weight: 700; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+.add-tab-btn:active { background: #e2ded0; }
 .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .sync-status { font-size: 11px; color: #888; min-height: 16px; }
 .identity-label { font-size: 11px; color: #888; text-decoration: underline; cursor: pointer; white-space: nowrap; }
@@ -21,13 +25,20 @@ h1 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #1a1a1a; }
 .identity-btn { display: block; width: 100%; padding: 12px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #ccc; background: #f7f7f5; font-size: 14px; font-weight: 600; cursor: pointer; }
 .identity-btn:last-child { margin-bottom: 0; }
 .identity-btn:active { background: #eee; }
-.tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .tab { flex: 1; padding: 9px 4px; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; background: #fff; color: #666; text-align: center; }
 .tab-super.active { background: #2a7ab8; color: #fff; border-color: #2a7ab8; }
 .tab-verdu.active { background: #3a8a4a; color: #fff; border-color: #3a8a4a; }
 .tab-carni.active { background: #c0392b; color: #fff; border-color: #c0392b; }
+.tab-custom { flex: 0 0 auto; padding: 9px 14px; }
+.tab-custom.active { background: #6c5ce7; color: #fff; border-color: #6c5ce7; }
 .section { display: none; }
 .section.active { display: block; }
+.section-label { font-size: 11px; font-weight: 600; color: #777; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 2px 8px; }
+.section-custom .add-btn { background: #6c5ce7; }
+.section-custom .check-btn.checked { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+.delete-tab-btn { width: 100%; padding: 10px; border: 1px solid #e0b0a8; border-radius: 8px; background: #fff; font-size: 13px; color: #c0392b; cursor: pointer; margin-bottom: 8px; }
+.delete-tab-btn:active { background: #faeae8; }
 
 .accordion { margin-bottom: 10px; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .acc-header { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; background: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -100,7 +111,10 @@ tbody tr:last-child td { border-bottom: none; }
 </style>
 </head>
 <body>
-<h1>Compras — Seffi 🛒</h1>
+<div class="hdr">
+  <h1>Compras — Seffi 🛒</h1>
+  <button class="add-tab-btn" onclick="window.addCustomTab()" title="Nueva lista temporal">+</button>
+</div>
 <div class="top-bar">
   <div class="sync-status" id="sync-status">Conectando...</div>
   <span class="identity-label" id="identity-label" onclick="document.getElementById('identity-modal').classList.add('show')">👤 elegir</span>
@@ -114,11 +128,12 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<div class="tabs">
-  <div class="tab tab-super active" onclick="show('super')">Supermercado</div>
-  <div class="tab tab-verdu" onclick="show('verdu')">Verdulería</div>
-  <div class="tab tab-carni" onclick="show('carni')">Carnicería</div>
+<div class="tabs" id="tabsBar">
+  <div class="tab tab-super active" data-tab="super" onclick="show('super')">Supermercado</div>
+  <div class="tab tab-verdu" data-tab="verdu" onclick="show('verdu')">Verdulería</div>
+  <div class="tab tab-carni" data-tab="carni" onclick="show('carni')">Carnicería</div>
 </div>
+<div id="customSections"></div>
 
 <!-- SUPERMERCADO -->
 <div id="super" class="section active">
@@ -758,8 +773,10 @@ window.resetTab = function(t) {
 window.show = function(t) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  document.getElementById(t).classList.add('active');
-  document.querySelector('.tab-' + t).classList.add('active');
+  const sectionEl = document.getElementById(t);
+  const tabEl = document.querySelector('[data-tab="' + t + '"]');
+  if (sectionEl) sectionEl.classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
   document.body.className = { super: '', verdu: 'bg-verdu', carni: 'bg-carni' }[t] || '';
 };
 
@@ -767,6 +784,172 @@ onValue(ref(db, 'lista'), (snapshot) => {
   setStatus('Conectado');
   applyState(snapshot.val());
   setTimeout(() => setStatus(''), 1500);
+});
+
+// ---- Listas temporales (pestañas dinámicas) ----
+let customTabsData = {};
+
+function makeCustomRow(id, key, item) {
+  const tr = document.createElement('tr');
+  const tdName = document.createElement('td');
+  tdName.className = 'item-name';
+  tdName.textContent = item.label;
+  const tdCheck = document.createElement('td');
+  tdCheck.className = 'check-cell';
+  const checkBtn = document.createElement('button');
+  checkBtn.className = 'check-btn' + (item.bought ? ' checked' : '');
+  if (item.bought) checkBtn.textContent = '✓';
+  checkBtn.onclick = () => item.bought ? window.uncheckCustom(id, key) : window.checkCustom(id, key);
+  tdCheck.appendChild(checkBtn);
+  const tdDel = document.createElement('td');
+  tdDel.className = 'del-cell';
+  const delBtn = document.createElement('button');
+  delBtn.className = 'del-btn';
+  delBtn.textContent = '×';
+  delBtn.onclick = () => window.deleteCustomItem(id, key);
+  tdDel.appendChild(delBtn);
+  tr.appendChild(tdName); tr.appendChild(tdCheck); tr.appendChild(tdDel);
+  return tr;
+}
+
+function buildCustomSection(id) {
+  const sec = document.createElement('div');
+  sec.id = id;
+  sec.className = 'section section-custom';
+  sec.innerHTML =
+    '<div class="section-label">Por comprar</div>' +
+    '<div class="accordion"><table><tbody id="' + id + '-pending"></tbody></table></div>' +
+    '<div class="bought-section empty" id="bsec-' + id + '">' +
+      '<div class="section-label">Comprado</div>' +
+      '<table><tbody id="bb-' + id + '"></tbody></table>' +
+    '</div>' +
+    '<div class="add-box">' +
+      '<label>Agregar ítem</label>' +
+      '<input class="add-input" id="' + id + '-add-input" type="text" placeholder="Nombre del producto..." onkeydown="if(event.key===\'Enter\')window.addCustomItem(\'' + id + '\')">' +
+      '<button class="add-btn" onclick="window.addCustomItem(\'' + id + '\')">+ Agregar</button>' +
+    '</div>' +
+    '<button class="reset-btn" onclick="window.resetCustomTab(\'' + id + '\')">Reiniciar lista</button>' +
+    '<button class="markall-btn" onclick="window.markAllCustomTab(\'' + id + '\')">Marcar todo como comprado</button>' +
+    '<button class="delete-tab-btn" onclick="window.deleteCustomTab(\'' + id + '\')">🗑️ Eliminar esta lista</button>';
+  return sec;
+}
+
+function renderCustomItems(id, items) {
+  const pendingTb = document.getElementById(id + '-pending');
+  const boughtTb = document.getElementById('bb-' + id);
+  if (!pendingTb || !boughtTb) return;
+  pendingTb.innerHTML = '';
+  boughtTb.innerHTML = '';
+  Object.keys(items).forEach(key => {
+    const item = items[key];
+    if (!item) return;
+    const row = makeCustomRow(id, key, item);
+    (item.bought ? boughtTb : pendingTb).appendChild(row);
+  });
+  const bsec = document.getElementById('bsec-' + id);
+  const bwrap = bsec;
+  const hasBought = boughtTb.children.length > 0;
+  if (bsec) bsec.classList.toggle('empty', !hasBought);
+}
+
+function renderCustomTabs(data) {
+  customTabsData = data || {};
+  const tabsBar = document.getElementById('tabsBar');
+  const customSections = document.getElementById('customSections');
+
+  const activeCustom = document.querySelector('.section-custom.active');
+  const activeId = activeCustom ? activeCustom.id : null;
+
+  tabsBar.querySelectorAll('.tab-custom').forEach(el => el.remove());
+  customSections.innerHTML = '';
+
+  let stillExists = false;
+  Object.keys(customTabsData).forEach(id => {
+    const tab = customTabsData[id];
+    if (!tab) return;
+    if (id === activeId) stillExists = true;
+
+    const pill = document.createElement('div');
+    pill.className = 'tab tab-custom';
+    pill.dataset.tab = id;
+    pill.textContent = tab.name || 'Lista';
+    pill.onclick = () => window.show(id);
+    tabsBar.appendChild(pill);
+
+    const sec = buildCustomSection(id);
+    customSections.appendChild(sec);
+    renderCustomItems(id, tab.items || {});
+  });
+
+  if (activeId) {
+    if (stillExists) {
+      document.getElementById(activeId).classList.add('active');
+      document.querySelector('[data-tab="' + activeId + '"]').classList.add('active');
+    } else {
+      window.show('super');
+    }
+  }
+}
+
+window.addCustomTab = function() {
+  const name = prompt('Nombre de la lista temporal (ej. "Viaje"):');
+  if (!name || !name.trim()) return;
+  const id = 'custom_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const newTab = { name: name.trim(), createdAt: Date.now(), items: {} };
+  customTabsData[id] = newTab;
+  renderCustomTabs(customTabsData);
+  window.show(id);
+  set(ref(db, 'customTabs/' + id), newTab);
+};
+
+window.deleteCustomTab = function(id) {
+  const tab = customTabsData[id];
+  const name = tab ? tab.name : 'esta lista';
+  if (!confirm('¿Eliminar "' + name + '" y todos sus ítems? Esta acción no se puede deshacer.')) return;
+  delete customTabsData[id];
+  renderCustomTabs(customTabsData);
+  remove(ref(db, 'customTabs/' + id));
+};
+
+window.addCustomItem = function(id) {
+  const input = document.getElementById(id + '-add-input');
+  const label = input.value.trim();
+  if (!label) return;
+  const key = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  set(ref(db, 'customTabs/' + id + '/items/' + key), { label, bought: false });
+  input.value = '';
+};
+
+window.checkCustom = function(id, key) {
+  update(ref(db, 'customTabs/' + id + '/items/' + key), { bought: true });
+};
+
+window.uncheckCustom = function(id, key) {
+  update(ref(db, 'customTabs/' + id + '/items/' + key), { bought: false });
+};
+
+window.deleteCustomItem = function(id, key) {
+  remove(ref(db, 'customTabs/' + id + '/items/' + key));
+};
+
+window.resetCustomTab = function(id) {
+  const tab = customTabsData[id];
+  if (!tab || !tab.items) return;
+  const updates = {};
+  Object.keys(tab.items).forEach(key => { updates[key + '/bought'] = false; });
+  update(ref(db, 'customTabs/' + id + '/items'), updates);
+};
+
+window.markAllCustomTab = function(id) {
+  const tab = customTabsData[id];
+  if (!tab || !tab.items) return;
+  const updates = {};
+  Object.keys(tab.items).forEach(key => { updates[key + '/bought'] = true; });
+  update(ref(db, 'customTabs/' + id + '/items'), updates);
+};
+
+onValue(ref(db, 'customTabs'), (snapshot) => {
+  renderCustomTabs(snapshot.val());
 });
 </script>
 </body>

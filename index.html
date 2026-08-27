@@ -68,6 +68,9 @@ tbody tr:last-child td { border-bottom: none; }
 .bought-section .note-text { color: rgba(0,0,0,0.3); }
 .check-cell { width: 34px; text-align: center; }
 .del-cell { width: 30px; text-align: center; }
+.addtemp-cell { width: 26px; text-align: center; }
+.addtemp-btn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #ccc; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #888; line-height: 1; -webkit-tap-highlight-color: transparent; }
+.addtemp-btn:active { background: #f0ede6; }
 .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #ccc; background: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
 #super .check-btn.checked { background: #2a7ab8; border-color: #2a7ab8; color: #fff; }
 #verdu .check-btn.checked { background: #3a8a4a; border-color: #3a8a4a; color: #fff; }
@@ -501,6 +504,20 @@ function ensureLastBoughtUI(row) {
   cell.innerHTML =
     '<span class="item-label">' + label + '<span class="note-star"></span></span>' +
     '<div class="lb-row"><span class="lb-date-wrap"><span class="lb-text">Sin registro</span><input type="date" class="lb-input"></span><span class="note-sep">·</span><span class="note-text"></span><button type="button" class="note-btn">📝</button></div>';
+
+  const checkCell = row.querySelector('.check-cell');
+  if (checkCell && !row.querySelector('.addtemp-cell')) {
+    const addTd = document.createElement('td');
+    addTd.className = 'addtemp-cell';
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'addtemp-btn';
+    addBtn.textContent = '+';
+    addBtn.title = 'Agregar a lista temporal';
+    addBtn.onclick = (e) => { e.stopPropagation(); window.addToCustomTab(label); };
+    addTd.appendChild(addBtn);
+    row.insertBefore(addTd, checkCell);
+  }
 
   const dateInput = cell.querySelector('.lb-input');
   dateInput.addEventListener('click', e => e.stopPropagation());
@@ -951,6 +968,33 @@ window.markAllCustomTab = function(id) {
 onValue(ref(db, 'customTabs'), (snapshot) => {
   renderCustomTabs(snapshot.val());
 });
+
+window.addToCustomTab = function(label) {
+  const ids = Object.keys(customTabsData);
+  let targetId;
+  if (ids.length === 0) {
+    const name = prompt('No tienes ninguna lista temporal todavía. ¿Nombre de la nueva lista?');
+    if (!name || !name.trim()) return;
+    targetId = 'custom_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    customTabsData[targetId] = { name: name.trim(), createdAt: Date.now(), items: {} };
+    set(ref(db, 'customTabs/' + targetId), customTabsData[targetId]);
+  } else if (ids.length === 1) {
+    targetId = ids[0];
+  } else {
+    const names = ids.map((id, i) => (i + 1) + '. ' + (customTabsData[id].name || 'Lista'));
+    const choice = prompt('¿A cuál lista agregar "' + label + '"?\n' + names.join('\n'));
+    const idx = parseInt(choice, 10) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= ids.length) return;
+    targetId = ids[idx];
+  }
+  const key = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  if (!customTabsData[targetId].items) customTabsData[targetId].items = {};
+  customTabsData[targetId].items[key] = { label, bought: false };
+  renderCustomTabs(customTabsData);
+  set(ref(db, 'customTabs/' + targetId + '/items/' + key), { label, bought: false });
+  setStatus('Agregado a "' + (customTabsData[targetId].name || 'lista') + '"');
+  setTimeout(() => setStatus(''), 1500);
+};
 </script>
 </body>
 </html>
